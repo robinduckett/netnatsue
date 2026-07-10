@@ -1,0 +1,18 @@
+NetNatsue, a recreation of the lost Babel client library for the
+Creatures Evolution Engine's networking module.
+
+Written starting in 2026 by contributors (see CREDITS in README.md).
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software. If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+
+This dedication covers the NetNatsue sources themselves.  It does not
+and cannot cover the Creatures Evolution Engine sources this library
+is designed to plug into, which remain the property of their owners;
+you must obtain those separately.

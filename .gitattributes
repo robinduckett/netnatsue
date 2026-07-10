@@ -1,0 +1,3 @@
+# Visual C++ 6 project files must keep CRLF line endings
+*.dsp text eol=crlf
+*.dsw text eol=crlf
