@@ -50,7 +50,9 @@ the eemfoo.org server:
     "Override Port" 49152
     "Override Server" eemfoo.org
 
-This file is downloadable from http://eem.foo/server.cfg.  With no
+Setup instructions for that server are at
+https://eem.foo/eem-foo-warp-natsue, including a ready-made copy of
+this file.  With no
 configuration the client falls back to the original
 `heart.creatures.net:49152`, which no longer exists.
 

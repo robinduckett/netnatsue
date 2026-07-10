@@ -97,9 +97,10 @@ include it already; some experimental CMake trees do not list it.
     "Override Port" 49152
     "Override Server" eemfoo.org
 
-For the eemfoo.org server this file is downloadable from
-http://eem.foo/server.cfg.  To run your own server, see the `natsue`
-directory of https://github.com/20kdc/c3ds-projects.
+Setup instructions for the eemfoo.org server, including a ready-made
+copy of this file, are at https://eem.foo/eem-foo-warp-natsue.  To
+run your own server, see the `natsue` directory of
+https://github.com/20kdc/c3ds-projects.
 
 ## Verifying without the engine
 
