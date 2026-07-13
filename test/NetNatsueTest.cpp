@@ -111,6 +111,26 @@ static void TestHandshakeBytes()
 	Check(sameOtherwise, "modes differ only in the +40 field");
 }
 
+// The idle NET: WHAT status identifies this client and its build date
+static void TestDefaultStatus()
+{
+	std::cout << "Default status:" << std::endl;
+	DSNetManager fresh;
+	std::string status = fresh.DebugGetCurrentAction();
+	Check(status.size() == 17, "idle status is 17 characters");
+	Check(status.compare(0, 7, "Natsuo ") == 0,
+		"idle status starts with Natsuo");
+	bool dateShaped = (status.size() == 17);
+	for (size_t i = 7; i < 17 && dateShaped; ++i)
+	{
+		if (i == 11 || i == 14)
+			dateShaped = (status[i] == '-');
+		else
+			dateShaped = (status[i] >= '0' && status[i] <= '9');
+	}
+	Check(dateShaped, "idle status date is YYYY-MM-DD");
+}
+
 // A minimal but well-formed PRAY file: the magic followed by one
 // uncompressed chunk with an empty pair of tag groups
 static std::string MakeTestPrayFile(const char* chunkType, const char* chunkName)
@@ -179,6 +199,7 @@ int main(int argc, char* argv[])
 	if (argc > 1 && std::string(argv[1]) == "--offline")
 	{
 		TestHandshakeBytes();
+		TestDefaultStatus();
 		std::cout << theChecks << " checks, " << theFailures
 			<< " failures" << std::endl;
 		return theFailures ? 1 : 0;
@@ -207,6 +228,7 @@ int main(int argc, char* argv[])
 		<< " in " << mode << " mode" << std::endl;
 
 	TestHandshakeBytes();
+	TestDefaultStatus();
 
 	MakeDir("nn_test_in1");
 	MakeDir("nn_test_out1");

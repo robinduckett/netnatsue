@@ -19,6 +19,20 @@ add_library(netnatsue STATIC
 
 target_include_directories(netnatsue PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+# The idle NET: WHAT status embeds the build date.  Regenerated on
+# every build; direct (non-CMake) builds of the sources fall back to
+# the compiler's __DATE__ instead.
+set(netnatsue_build_date_header
+	${CMAKE_CURRENT_BINARY_DIR}/generated/NetBuildDate.h)
+add_custom_target(netnatsue-build-date
+	COMMAND ${CMAKE_COMMAND} -DOUT=${netnatsue_build_date_header}
+		-P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BuildDate.cmake
+	BYPRODUCTS ${netnatsue_build_date_header})
+add_dependencies(netnatsue netnatsue-build-date)
+target_include_directories(netnatsue PRIVATE
+	${CMAKE_CURRENT_BINARY_DIR}/generated)
+target_compile_definitions(netnatsue PRIVATE NETNATSUE_BUILD_DATE_HEADER)
+
 if(WIN32)
 	target_link_libraries(netnatsue PUBLIC ws2_32)
 endif()
