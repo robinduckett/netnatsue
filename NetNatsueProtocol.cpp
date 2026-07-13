@@ -110,7 +110,8 @@ void PacketHeader::Write(std::vector<char>& out) const
 // ---------------------------------------------------------------------
 
 std::vector<char> BuildHandshake(const BabelUIN& user, int ticket,
-	const std::string& nickname, const std::string& password)
+	const std::string& nickname, const std::string& password,
+	int magic)
 {
 	// 52 byte header, then nickname and password with terminators
 	PacketHeader header;
@@ -123,9 +124,10 @@ std::vector<char> BuildHandshake(const BabelUIN& user, int ticket,
 	header.Write(out);
 	PutInt(out, HANDSHAKE_CLIENT_VERSION);
 	PutInt(out, HANDSHAKE_PRODUCT_CODE);
-	// Zero marks us as a stock Babel client, which keeps all of
-	// Natsue's compatibility workarounds enabled.
-	PutInt(out, 0);
+	// 0 marks us as a stock Babel client, which keeps all of
+	// Natsue's compatibility workarounds enabled;
+	// HANDSHAKE_MAGIC_MODERN claims the not-actually-Babel extension
+	PutInt(out, magic);
 	PutInt(out, nickname.size() + 1);	// lengths include the terminator
 	PutInt(out, password.size() + 1);
 	out.insert(out.end(), nickname.begin(), nickname.end());

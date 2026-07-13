@@ -389,7 +389,7 @@ void DSNetManager::PumpConnectPhase()
 			// quote the user id the server previously gave us.
 			myCurrentAction = "Logging in as " + myNickname;
 			std::vector<char> handshake = BuildHandshake(
-				myUserUIN, NextTicket(), myNickname, myPassword);
+				myUserUIN, NextTicket(), myNickname, myPassword, 0);
 			if (!mySocket.Write(&handshake[0], (int)handshake.size()))
 			{
 				myLastError = ERROR_OFFLINE;

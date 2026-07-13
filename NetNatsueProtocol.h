@@ -54,6 +54,13 @@ namespace NetNatsueProtocol
 	// CLIENTVERSION and PRODUCTCODE (2 = Docking Station).
 	const int HANDSHAKE_CLIENT_VERSION = 1;
 	const int HANDSHAKE_PRODUCT_CODE = 2;
+	// Natsue extension (c3ds-projects, tob/Packets/CTOS.md): a value
+	// of 20240219 or higher in the third handshake int (offset +40,
+	// always 0 in vanilla Babel) marks the client as not-actually-
+	// Babel, letting the server drop its workarounds for the vanilla
+	// client's networking bugs (e.g. contacts can be added live
+	// instead of on the next login).
+	const int HANDSHAKE_MAGIC_MODERN = 20240219;
 
 	// A user identity: UID plus HID, written "uid+hid" in CAOS.
 	struct BabelUIN
@@ -110,7 +117,8 @@ namespace NetNatsueProtocol
 
 	// Packet builders.  Each returns the complete packet bytes
 	std::vector<char> BuildHandshake(const BabelUIN& user, int ticket,
-		const std::string& nickname, const std::string& password);
+		const std::string& nickname, const std::string& password,
+		int magic);
 	std::vector<char> BuildWWRModify(bool add, const BabelUIN& server,
 		const BabelUIN& target);
 	std::vector<char> BuildGetClientInfo(const BabelUIN& server,
