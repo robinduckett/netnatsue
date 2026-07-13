@@ -76,6 +76,18 @@ public:
 	// "Override Server" / "Override Port" entries in server.cfg
 	static void OverrideHost(const std::string& host, int port);
 
+	// Handshake identity, set from the "Client Mode" entry in
+	// server.cfg.  Modern (the default) claims Natsue's
+	// not-actually-Babel extension, so the server drops its
+	// vanilla-bug workarounds and contacts can be added live;
+	// Original presents as a stock Babel client.
+	enum ClientMode
+	{
+		CLIENT_MODE_MODERN,
+		CLIENT_MODE_ORIGINAL,
+	};
+	static void SetClientMode(ClientMode mode);
+
 	// --- session -----------------------------------------------------
 
 	void SetUser(const std::string& nickname, const std::string& password = "");
@@ -274,6 +286,7 @@ private:
 	// --- static configuration ---
 	static std::string ourOverrideHost;
 	static int ourOverridePort;
+	static ClientMode ourClientMode;
 
 	// --- state ---
 	NetLogInterface* myLogger;

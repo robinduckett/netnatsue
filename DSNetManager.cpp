@@ -213,6 +213,7 @@ static std::string UserFromSpoolName(const std::string& name)
 
 std::string DSNetManager::ourOverrideHost;
 int DSNetManager::ourOverridePort = 0;
+DSNetManager::ClientMode DSNetManager::ourClientMode = DSNetManager::CLIENT_MODE_MODERN;
 
 DSNetManager::DSNetManager()
 {
@@ -288,6 +289,12 @@ void DSNetManager::OverrideHost(const std::string& host, int port)
 {
 	ourOverrideHost = host;
 	ourOverridePort = port;
+}
+
+// static
+void DSNetManager::SetClientMode(ClientMode mode)
+{
+	ourClientMode = mode;
 }
 
 // ---------------------------------------------------------------------
@@ -389,7 +396,9 @@ void DSNetManager::PumpConnectPhase()
 			// quote the user id the server previously gave us.
 			myCurrentAction = "Logging in as " + myNickname;
 			std::vector<char> handshake = BuildHandshake(
-				myUserUIN, NextTicket(), myNickname, myPassword, 0);
+				myUserUIN, NextTicket(), myNickname, myPassword,
+				ourClientMode == CLIENT_MODE_ORIGINAL
+					? 0 : HANDSHAKE_MAGIC_MODERN);
 			if (!mySocket.Write(&handshake[0], (int)handshake.size()))
 			{
 				myLastError = ERROR_OFFLINE;
