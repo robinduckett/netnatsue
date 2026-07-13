@@ -99,6 +99,11 @@ and the `tools/nettest` sources.  Internals differ:
   the server's vanilla-client bug workarounds and enables live
   contact adds.  Setting `"Client Mode" original` in `server.cfg`
   sends 0 there instead, identifying as a stock Babel client.
+* `NET: WHAT` reports `Natsuo <build date>` when idle instead of the
+  original client's empty string, identifying the client build
+  in-game.  CMake builds stamp the date at build time (generated
+  `NetBuildDate.h`); direct source builds use the compiler's
+  `__DATE__`.
 * `NET: STAT` reports locally measured time online and byte counts;
   the users-online figure comes from the server.
 
