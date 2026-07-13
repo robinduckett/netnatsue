@@ -96,6 +96,13 @@ include it already; some experimental CMake trees do not list it.
 
     "Override Port" 49152
     "Override Server" eemfoo.org
+    "Client Mode" modern
+
+`"Client Mode"` is optional: `modern` (default) sends Natsue's
+not-actually-Babel handshake extension so the server can disable its
+vanilla-bug workarounds (live contact adds); `original` identifies
+as a stock Babel client.  The engine-side module re-reads the key on
+every connect, so it can be changed without restarting the game.
 
 Setup instructions for the eemfoo.org server, including a ready-made
 copy of this file, are at https://eem.foo/eem-foo-warp-natsue.  To

@@ -11,6 +11,10 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef NETNATSUE_BUILD_DATE_HEADER
+#include "NetBuildDate.h"	// generated into the build tree by CMake
+#endif
+
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
@@ -213,6 +217,7 @@ static std::string UserFromSpoolName(const std::string& name)
 
 std::string DSNetManager::ourOverrideHost;
 int DSNetManager::ourOverridePort = 0;
+DSNetManager::ClientMode DSNetManager::ourClientMode = DSNetManager::CLIENT_MODE_MODERN;
 
 DSNetManager::DSNetManager()
 {
@@ -290,6 +295,12 @@ void DSNetManager::OverrideHost(const std::string& host, int port)
 	ourOverridePort = port;
 }
 
+// static
+void DSNetManager::SetClientMode(ClientMode mode)
+{
+	ourClientMode = mode;
+}
+
 // ---------------------------------------------------------------------
 // Session
 // ---------------------------------------------------------------------
@@ -327,8 +338,38 @@ int DSNetManager::RawGetLastError()
 	return myRawError;
 }
 
+// The idle status: identifies this client and its build date.
+// CMake builds generate NetBuildDate.h every build; direct builds of
+// the five .cpp files fall back to the compiler's __DATE__
+// ("Mmm dd yyyy"), which refreshes when this file recompiles.
+static const std::string& DefaultCurrentAction()
+{
+	static std::string action;
+	if (action.empty())
+	{
+#ifdef NETNATSUE_BUILD_DATE
+		action = std::string("Natsuo ") + NETNATSUE_BUILD_DATE;
+#else
+		const char* date = __DATE__;
+		static const char names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+		int month = 0;
+		for (int i = 0; i < 12; ++i)
+			if (strncmp(date, names + i * 3, 3) == 0)
+				month = i + 1;
+		int day = (date[4] == ' ' ? 0 : (date[4] - '0') * 10)
+			+ (date[5] - '0');
+		char buffer[16];
+		sprintf(buffer, "%.4s-%02d-%02d", date + 7, month, day);
+		action = std::string("Natsuo ") + buffer;
+#endif
+	}
+	return action;
+}
+
 std::string DSNetManager::DebugGetCurrentAction()
 {
+	if (myCurrentAction.empty())
+		return DefaultCurrentAction();
 	return myCurrentAction;
 }
 
@@ -389,7 +430,9 @@ void DSNetManager::PumpConnectPhase()
 			// quote the user id the server previously gave us.
 			myCurrentAction = "Logging in as " + myNickname;
 			std::vector<char> handshake = BuildHandshake(
-				myUserUIN, NextTicket(), myNickname, myPassword);
+				myUserUIN, NextTicket(), myNickname, myPassword,
+				ourClientMode == CLIENT_MODE_ORIGINAL
+					? 0 : HANDSHAKE_MAGIC_MODERN);
 			if (!mySocket.Write(&handshake[0], (int)handshake.size()))
 			{
 				myLastError = ERROR_OFFLINE;

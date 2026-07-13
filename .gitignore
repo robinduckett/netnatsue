@@ -5,3 +5,5 @@ build/
 test/NetNatsueTest
 nn_test_in*/
 nn_test_out*/
+reference/
+docs/superpowers/

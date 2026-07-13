@@ -88,6 +88,49 @@ static void PumpBoth(DSNetManager& a, DSNetManager& b, int ms)
 	}
 }
 
+// Offline: the two client modes must differ only in the handshake
+// extension field at offset +40 (tob/Packets/CTOS.md)
+static void TestHandshakeBytes()
+{
+	using namespace NetNatsueProtocol;
+
+	std::cout << "Handshake bytes:" << std::endl;
+	BabelUIN uin(42, 1);
+	std::vector<char> original = BuildHandshake(uin, 7, "nick", "pass", 0);
+	std::vector<char> modern = BuildHandshake(uin, 7, "nick", "pass",
+		HANDSHAKE_MAGIC_MODERN);
+	Check(original.size() == 52 + 5 + 5, "handshake is 52 bytes plus strings");
+	Check(original.size() == modern.size(), "same length in both modes");
+	Check(GetInt(&original[0], 40) == 0, "original mode sends 0 at +40");
+	Check(GetInt(&modern[0], 40) == HANDSHAKE_MAGIC_MODERN,
+		"modern mode sends the Natsue magic at +40");
+	bool sameOtherwise = true;
+	for (size_t i = 0; i < original.size() && sameOtherwise; ++i)
+		if (i < 40 || i >= 44)
+			sameOtherwise = (original[i] == modern[i]);
+	Check(sameOtherwise, "modes differ only in the +40 field");
+}
+
+// The idle NET: WHAT status identifies this client and its build date
+static void TestDefaultStatus()
+{
+	std::cout << "Default status:" << std::endl;
+	DSNetManager fresh;
+	std::string status = fresh.DebugGetCurrentAction();
+	Check(status.size() == 17, "idle status is 17 characters");
+	Check(status.compare(0, 7, "Natsuo ") == 0,
+		"idle status starts with Natsuo");
+	bool dateShaped = (status.size() == 17);
+	for (size_t i = 7; i < 17 && dateShaped; ++i)
+	{
+		if (i == 11 || i == 14)
+			dateShaped = (status[i] == '-');
+		else
+			dateShaped = (status[i] >= '0' && status[i] <= '9');
+	}
+	Check(dateShaped, "idle status date is YYYY-MM-DD");
+}
+
 // A minimal but well-formed PRAY file: the magic followed by one
 // uncompressed chunk with an empty pair of tag groups
 static std::string MakeTestPrayFile(const char* chunkType, const char* chunkName)
@@ -153,6 +196,15 @@ static std::string MakeTestHistoryBlob(const std::string& userID)
 
 int main(int argc, char* argv[])
 {
+	if (argc > 1 && std::string(argv[1]) == "--offline")
+	{
+		TestHandshakeBytes();
+		TestDefaultStatus();
+		std::cout << theChecks << " checks, " << theFailures
+			<< " failures" << std::endl;
+		return theFailures ? 1 : 0;
+	}
+
 	std::string host = "localhost";
 	int port = 49152;
 	if (argc > 1)
@@ -160,7 +212,23 @@ int main(int argc, char* argv[])
 	if (argc > 2)
 		port = atoi(argv[2]);
 
-	std::cout << "NetNatsue protocol test against " << host << ":" << port << std::endl;
+	std::string mode = "modern";
+	if (argc > 3)
+		mode = argv[3];
+	if (mode == "original")
+		DSNetManager::SetClientMode(DSNetManager::CLIENT_MODE_ORIGINAL);
+	else if (mode != "modern")
+	{
+		std::cout << "Unknown mode '" << mode
+			<< "': expected modern or original" << std::endl;
+		return 1;
+	}
+
+	std::cout << "NetNatsue protocol test against " << host << ":" << port
+		<< " in " << mode << " mode" << std::endl;
+
+	TestHandshakeBytes();
+	TestDefaultStatus();
 
 	MakeDir("nn_test_in1");
 	MakeDir("nn_test_out1");

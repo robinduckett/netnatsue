@@ -50,6 +50,18 @@ the eemfoo.org server:
     "Override Port" 49152
     "Override Server" eemfoo.org
 
+An optional `"Client Mode"` entry selects how the client identifies
+itself to Natsue:
+
+    "Client Mode" modern
+
+`modern` (the default when the entry is absent) sends Natsue's
+not-actually-Babel handshake extension, so the server disables the
+workarounds it keeps for the original client's networking bugs — in
+particular, contacts added through the server's `contact` command
+appear live instead of at the next login.  `original` presents as a
+stock Babel client, exercising Natsue's vanilla-compatible path.
+
 Setup instructions for that server are at
 https://eem.foo/eem-foo-warp-natsue, including a ready-made copy of
 this file.  With no
@@ -81,9 +93,17 @@ and the `tools/nettest` sources.  Internals differ:
 * Incoming virtual circuit connects are acknowledged
   (`C_TID_CLIENT_COMMAND`, subcommand 0xE) and otherwise ignored.
   Natsue uses these circuits as delivery confirmation pings.
-* The handshake identifies as a stock Babel client (`CLIENTVERSION=1`,
-  `PRODUCTCODE=2`, extension field 0), so Natsue keeps its
-  vanilla-client compatibility behaviour enabled.
+* The handshake sends `CLIENTVERSION=1`, `PRODUCTCODE=2` and, by
+  default, `20240219` in the extension field — Natsue's
+  not-actually-Babel marker (`tob/Packets/CTOS.md`), which turns off
+  the server's vanilla-client bug workarounds and enables live
+  contact adds.  Setting `"Client Mode" original` in `server.cfg`
+  sends 0 there instead, identifying as a stock Babel client.
+* `NET: WHAT` reports `Natsuo <build date>` when idle instead of the
+  original client's empty string, identifying the client build
+  in-game.  CMake builds stamp the date at build time (generated
+  `NetBuildDate.h`); direct source builds use the compiler's
+  `__DATE__`.
 * `NET: STAT` reports locally measured time online and byte counts;
   the users-online figure comes from the server.
 
@@ -127,7 +147,11 @@ Run a Natsue server locally (the `natsue` directory of c3ds-projects;
 set `firewallLevel minimal` in `ntsuconf.txt` so the harness's
 hand-rolled PRAY files pass the content filters), then:
 
-    ./build/netnatsue-test [host] [port]
+    ./build/netnatsue-test [host] [port] [modern|original]
+
+`./build/netnatsue-test --offline` runs just the offline packet
+checks; the mode argument (default `modern`) selects the client
+mode used for the live run.
 
 It logs in two users and runs them through the command surface the
 engine module uses, including a warp file round trip, and reports a
