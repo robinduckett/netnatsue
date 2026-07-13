@@ -191,7 +191,20 @@ int main(int argc, char* argv[])
 	if (argc > 2)
 		port = atoi(argv[2]);
 
-	std::cout << "NetNatsue protocol test against " << host << ":" << port << std::endl;
+	std::string mode = "modern";
+	if (argc > 3)
+		mode = argv[3];
+	if (mode == "original")
+		DSNetManager::SetClientMode(DSNetManager::CLIENT_MODE_ORIGINAL);
+	else if (mode != "modern")
+	{
+		std::cout << "Unknown mode '" << mode
+			<< "': expected modern or original" << std::endl;
+		return 1;
+	}
+
+	std::cout << "NetNatsue protocol test against " << host << ":" << port
+		<< " in " << mode << " mode" << std::endl;
 
 	TestHandshakeBytes();
 
